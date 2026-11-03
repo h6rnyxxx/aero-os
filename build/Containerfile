@@ -1,0 +1,21 @@
+FROM registry.fedoraproject.org/fedora:40
+
+# Установка зависимостей сборщика дистрибутивов
+RUN dnf -y update && \
+    dnf -y install \
+        lorax \
+        livecd-tools \
+        pykickstart \
+        btrfs-progs \
+        dosfstools \
+        e2fsprogs \
+        xorriso \
+        findutils \
+        coreutils \
+        systemd && \
+    dnf clean all
+
+WORKDIR /workspace
+
+# Скрипт входа в контейнер
+ENTRYPOINT ["/bin/bash", "/workspace/build/build-iso.sh"]

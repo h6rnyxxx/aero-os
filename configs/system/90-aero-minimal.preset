@@ -1,0 +1,28 @@
+# Системный пресет AeroOS: отключение прожорливых фоновых служб
+# для экономии 200-350 МБ ОЗУ на машинах с 2-4 ГБ RAM
+
+disable tracker*
+disable tracker-miner-fs*
+disable baloo_file
+disable baloo_file_extractor
+disable abrt*
+disable abrt-journal-core.service
+disable abrt-oops.service
+disable abrt-xorg.service
+disable abrt-ccpp.service
+disable ModemManager.service
+disable sssd.service
+disable geoclue.service
+disable NetworkManager-wait-online.service
+disable dnf-makecache.timer
+disable lvm2-monitor.service
+disable raid-check.timer
+
+# Сокетная активация вместо постоянно висящих демонов
+disable cups.service
+enable cups.socket
+
+# Базовые графические и оптимизационные службы
+enable sddm.service
+enable nftables.service
+enable systemd-oomd.service

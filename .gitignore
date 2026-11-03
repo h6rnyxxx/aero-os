@@ -1,0 +1,10 @@
+# Игнорируемые файлы сборщика AeroOS
+output/
+*.iso
+*.sha256
+*.log
+/var/tmp/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

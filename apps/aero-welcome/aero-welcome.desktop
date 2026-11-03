@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Добро пожаловать в AeroOS
+Comment=Центр знакомства и оптимизации AeroOS
+Exec=python3 /usr/local/bin/aero-welcome.py
+Icon=preferences-desktop-notification-bell
+Terminal=false
+Categories=System;Settings;
+StartupNotify=true

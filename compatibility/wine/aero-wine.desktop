@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=AeroOS Wine Launcher
+Comment=Запустить приложение Windows (.exe, .msi)
+Exec=/usr/local/bin/aero-wine-launcher %f
+Icon=wine
+Terminal=false
+MimeType=application/x-ms-dos-executable;application/x-msi;application/x-executable;application/x-wine-extension-msp;
+Categories=Utility;Emulator;
+NoDisplay=false
+StartupNotify=true

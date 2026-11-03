@@ -1,0 +1,32 @@
+# Профиль Bottles для AeroOS: Игровой профиль с низкой задержкой
+Name: AeroGaming
+Arch: win64
+Custom_Commands: {}
+Environment: Gaming
+Installed_Dependencies:
+  - arial32
+  - d3dcompiler_43
+  - d3dcompiler_47
+  - d3dx9
+  - dxvk
+  - vkd3d
+Language: sys
+Parameters:
+  custom_dpi: 96
+  discrete_gpu: true
+  dxvk: true
+  dxvk_nvapi: false
+  esync: true
+  fsync: true
+  gamemode: true
+  latencyflex: false
+  mangohud: false
+  obshwnd: false
+  pulseaudio_latency: true
+  renderer: vulkan
+  sync: fsync
+  vkd3d: true
+  virtual_desktop: false
+State: 0
+Versioning: false
+Windows: win10

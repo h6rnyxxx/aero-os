@@ -1,0 +1,106 @@
+name: AeroOS Continuous ISO Builder
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'kickstart/**'
+      - 'configs/**'
+      - 'compatibility/**'
+      - 'branding/**'
+      - 'build/**'
+  schedule:
+    # Автоматическая сборка свежего ISO каждое воскресенье в 03:00 UTC
+    # со всеми актуальными апдейтами безопасности ядра Fedora
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Пользовательский тег релиза (например: v1.0.1)'
+        required: false
+        default: ''
+
+jobs:
+  build-iso:
+    name: Build AeroOS ISO
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free disk space on runner
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+
+      - name: Set up build date & tag
+        id: vars
+        run: |
+          DATE_TAG=$(date +'%Y.%m.%d-%H%M')
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            TAG="${{ github.event.inputs.release_tag }}"
+          else
+            TAG="v1.0-${DATE_TAG}"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "date=${DATE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Build ISO using Fedora Container
+        run: |
+          mkdir -p output
+          echo "=== Запуск привилегированного контейнера сборки Fedora 40 ==="
+          docker build -t aero-builder:f40 -f build/Containerfile build/
+          docker run --rm --privileged \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            aero-builder:f40
+
+      - name: Verify ISO output and generate checksums
+        id: check_iso
+        run: |
+          ls -la output/
+          ISO_FILE=$(find output -maxdepth 1 -name "*.iso" | head -n 1)
+          if [ -z "$ISO_FILE" ]; then
+            echo "::error::ISO файл не был создан!"
+            exit 1
+          fi
+          echo "iso_path=${ISO_FILE}" >> $GITHUB_OUTPUT
+          echo "iso_name=$(basename "$ISO_FILE")" >> $GITHUB_OUTPUT
+          cd output
+          sha256sum $(basename "$ISO_FILE") > $(basename "$ISO_FILE").sha256
+          cat $(basename "$ISO_FILE").sha256
+
+      - name: Publish ISO to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: "AeroOS Release ${{ steps.vars.outputs.tag }}"
+          body: |
+            ### 🪟 AeroOS Automated Release (${{ steps.vars.outputs.date }})
+            
+            Автоматическая сборка операционной системы AeroOS на базе актуальных пакетов Fedora 40.
+            
+            * **Ядро & Пакеты:** Fedora 40 (Wayland, PipeWire, DNF5)
+            * **Оболочка:** KDE Plasma 6 Fluent Win11 Edition
+            * **Оптимизации:** zRAM zstd (150%), Snapper + Btrfs rollbacks, отключены Baloo/Tracker3
+            * **Совместимость:** Aero Wine Launcher (Vulkan/OpenGL autodetect), Bottles, WinApps
+            
+            #### Контрольная сумма SHA256:
+            ```
+            $(cat output/${{ steps.check_iso.outputs.iso_name }}.sha256)
+            ```
+          files: |
+            ${{ steps.check_iso.outputs.iso_path }}
+            output/${{ steps.check_iso.outputs.iso_name }}.sha256
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
